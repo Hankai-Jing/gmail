@@ -22,7 +22,7 @@ if __name__ == '__main__':
     print("\nPress CTRL+C to stop the server")
     print("\nNote: Set FLASK_DEBUG=1 environment variable to enable debug mode")
     print("Note: Set FLASK_PORT environment variable to change the port (default: 5000)")
-    print("      Example: FLASK_PORT=8080 python app.py")
+    print("      Example: FLASK_PORT=8080 python run_web.py")
     print("=" * 80)
     
     # Debug mode should only be enabled in development
