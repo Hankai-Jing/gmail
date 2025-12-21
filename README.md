@@ -61,6 +61,18 @@ python app.py
 
 Then open your browser and navigate to `http://localhost:5000`
 
+**Changing the Port:**
+
+If port 5000 is already in use, you can specify a different port:
+
+```bash
+# Use port 8080 instead
+FLASK_PORT=8080 python app.py
+
+# Or with run_web.py
+FLASK_PORT=8080 python run_web.py
+```
+
 ## Usage
 
 ### Web Interface
@@ -69,6 +81,11 @@ Run the Flask web application:
 
 ```bash
 python app.py
+# Access at http://localhost:5000
+
+# Or use a different port if 5000 is in use:
+FLASK_PORT=8080 python app.py
+# Access at http://localhost:8080
 ```
 
 Features:

@@ -178,4 +178,5 @@ if __name__ == '__main__':
     # Set FLASK_DEBUG=1 environment variable for debug mode
     import os
     debug_mode = os.environ.get('FLASK_DEBUG', '0') == '1'
-    app.run(debug=debug_mode, host='0.0.0.0', port=5000)
+    port = int(os.environ.get('FLASK_PORT', '5000'))
+    app.run(debug=debug_mode, host='0.0.0.0', port=port)
