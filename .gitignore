@@ -40,3 +40,8 @@ htmlcov/
 # Temporary files
 /tmp/
 *.tmp
+
+# Database
+*.db
+*.sqlite
+*.sqlite3

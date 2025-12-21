@@ -140,6 +140,11 @@ class EmailService:
             raise ValueError(f"User {user_email} is not authorized to read this email")
         
         email.mark_as_read()
+        
+        # Persist the read status if storage supports it
+        if hasattr(self.storage, 'update_email'):
+            self.storage.update_email(email)
+        
         return email
     
     def get_user(self, email_address: str) -> Optional[User]:

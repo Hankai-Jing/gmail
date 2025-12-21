@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+
+{% block title %}{{ email.subject }} - Gmail-like System{% endblock %}
+
+{% block content %}
+<div class="email-detail">
+    <h2 class="subject">{{ email.subject }}</h2>
+    <div class="meta">
+        <div><strong>From:</strong> {{ email.sender }}</div>
+        <div><strong>To:</strong> {{ email.recipient }}</div>
+        <div><strong>Date:</strong> {{ email.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}</div>
+        <div><strong>Status:</strong> {% if email.read %}Read{% else %}Unread{% endif %}</div>
+    </div>
+    <div class="body">{{ email.body }}</div>
+    <div class="actions">
+        {% if email.recipient == current_user %}
+            <a href="{{ url_for('inbox') }}" class="btn">Back to Inbox</a>
+        {% else %}
+            <a href="{{ url_for('sent') }}" class="btn">Back to Sent</a>
+        {% endif %}
+        <a href="{{ url_for('compose') }}" class="btn btn-secondary">Compose New</a>
+    </div>
+</div>
+{% endblock %}

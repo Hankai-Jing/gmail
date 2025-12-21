@@ -1,2 +1,5 @@
-# No external dependencies required for basic implementation
-# Using Python standard library only
+# Core dependencies
+Flask==3.0.0
+Werkzeug==3.0.1
+
+# No additional database driver needed - using SQLite (built into Python)

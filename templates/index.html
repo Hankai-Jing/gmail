@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+
+{% block title %}Home - Gmail-like System{% endblock %}
+
+{% block content %}
+<div class="card" style="text-align: center; padding: 60px 40px;">
+    <h2 style="margin-bottom: 20px; color: #202124;">Welcome to Gmail-like System</h2>
+    <p style="margin-bottom: 30px; color: #5f6368; font-size: 16px;">
+        A simple email system for sending and receiving messages
+    </p>
+    <div style="display: flex; gap: 20px; justify-content: center;">
+        <a href="{{ url_for('login') }}" class="btn">Login</a>
+        <a href="{{ url_for('register') }}" class="btn btn-secondary">Register</a>
+    </div>
+</div>
+
+<div class="card">
+    <h3 style="margin-bottom: 15px;">Features</h3>
+    <ul style="line-height: 2; color: #5f6368;">
+        <li>✉️ Send and receive emails</li>
+        <li>📥 Manage your inbox</li>
+        <li>📤 Track sent messages</li>
+        <li>👤 User management</li>
+        <li>💾 Persistent database storage</li>
+    </ul>
+</div>
+{% endblock %}

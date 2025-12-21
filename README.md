@@ -1,6 +1,6 @@
 # Gmail-like Email System
 
-A simple, fully-functional Gmail-like system that allows users to send and receive emails. Built with Python using only the standard library.
+A fully-functional Gmail-like system that allows users to send and receive emails. Built with Python, featuring both a command-line interface and a modern web UI with persistent database storage.
 
 ## Features
 
@@ -10,7 +10,9 @@ A simple, fully-functional Gmail-like system that allows users to send and recei
 - **Sent Folder**: View all sent emails
 - **Read Emails**: Read individual emails and mark them as read
 - **Email Tracking**: Automatic timestamping and unique ID generation
-- **In-Memory Storage**: Fast, lightweight storage for development and testing
+- **Database Persistence**: SQLite database for persistent storage
+- **Web UI**: Modern, responsive web interface built with Flask
+- **CLI Interface**: Traditional command-line interface for power users
 
 ## Architecture
 
@@ -18,24 +20,66 @@ The system is built with a clean, modular architecture:
 
 - **models.py**: Data models for Email and User entities
 - **storage.py**: In-memory storage layer for emails and users
+- **database_storage.py**: SQLite-based persistent storage layer
 - **email_service.py**: Business logic for email operations
+- **app.py**: Flask web application with HTML templates
 - **main.py**: Command-line interface for user interaction
-- **test_gmail.py**: Comprehensive unit tests
+- **demo.py**: Automated demo script
+- **test_gmail.py**: Comprehensive unit tests for in-memory storage
+- **test_database.py**: Unit tests for database storage
 
 ## Installation
 
-No external dependencies required! The system uses only Python's standard library.
+### Option 1: CLI Only (No Dependencies)
+
+For the command-line interface only, no external dependencies are required:
 
 ```bash
 # Clone the repository
 git clone https://github.com/Hankai-Jing/gmail.git
 cd gmail
 
-# Run the application (requires Python 3.6+)
+# Run the CLI application (requires Python 3.6+)
 python main.py
 ```
 
+### Option 2: Web UI (With Flask)
+
+For the full web interface experience:
+
+```bash
+# Clone the repository
+git clone https://github.com/Hankai-Jing/gmail.git
+cd gmail
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Run the web application
+python app.py
+```
+
+Then open your browser and navigate to `http://localhost:5000`
+
 ## Usage
+
+### Web Interface
+
+Run the Flask web application:
+
+```bash
+python app.py
+```
+
+Features:
+- **Home Page**: Welcome page with login/register options
+- **Register**: Create a new user account
+- **Login**: Access your account (simple email-based authentication)
+- **Inbox**: View all received emails (unread emails are highlighted)
+- **Sent**: View all sent emails
+- **Compose**: Send new emails with recipient dropdown
+- **View Email**: Read individual emails with full details
+- **Users**: Browse all registered users
 
 ### Interactive CLI
 
@@ -58,11 +102,13 @@ The CLI provides the following options:
 
 You can also use the system programmatically in your Python code:
 
+#### Using In-Memory Storage:
+
 ```python
 from email_service import EmailService
 from storage import EmailStorage
 
-# Initialize the service
+# Initialize the service with in-memory storage
 storage = EmailStorage()
 service = EmailService(storage)
 
@@ -87,13 +133,34 @@ read_email = service.read_email(email.email_id, "bob@example.com")
 print(read_email)
 ```
 
+#### Using Database Storage:
+
+```python
+from email_service import EmailService
+from database_storage import DatabaseStorage
+
+# Initialize the service with database storage
+storage = DatabaseStorage('gmail.db')
+service = EmailService(storage)
+
+# Use the same API as above - data persists to SQLite database
+service.register_user("alice@example.com", "Alice Smith")
+# ... rest of the code is identical
+```
+
 ## Running Tests
 
 The system includes comprehensive unit tests covering all functionality:
 
 ```bash
-# Run all tests
+# Run all in-memory storage tests (22 tests)
 python -m unittest test_gmail.py -v
+
+# Run all database storage tests (9 tests)
+python -m unittest test_database.py -v
+
+# Run all tests
+python -m unittest discover -v
 
 # Run specific test class
 python -m unittest test_gmail.TestEmailService -v
@@ -102,7 +169,7 @@ python -m unittest test_gmail.TestEmailService -v
 python -m unittest test_gmail.TestEmailService.test_send_email -v
 ```
 
-All 22 tests should pass successfully.
+All 31 tests should pass successfully.
 
 ## API Reference
 
@@ -188,7 +255,9 @@ Enter your email address: bob@example.com
 
 ## Design Decisions
 
-1. **In-Memory Storage**: Uses Python dictionaries for fast, simple storage. For production use, this could be replaced with a database backend.
+1. **Dual Storage Options**: 
+   - **In-Memory Storage**: Uses Python dictionaries for fast, simple storage perfect for testing and demos
+   - **Database Storage**: SQLite-based persistent storage for production use with indexed queries
 
 2. **User Registration Required**: Both sender and recipient must be registered before sending emails, providing a controlled environment.
 
@@ -198,21 +267,40 @@ Enter your email address: bob@example.com
 
 5. **UUID for Email IDs**: Uses UUID4 for globally unique email identifiers.
 
+6. **Web UI with Flask**: Modern, responsive web interface using session-based authentication for simplicity.
+
+## Implemented Features
+
+- ✅ Database persistence (SQLite)
+- ✅ Web-based UI (Flask)
+- ✅ User management and authentication
+- ✅ Email read/unread status tracking
+- ✅ Inbox and sent folder organization
+- ✅ Responsive design with visual feedback
+
 ## Future Enhancements
 
-Possible improvements for a production system:
-- Database persistence (PostgreSQL, MongoDB, etc.)
+Possible improvements for a more complete system:
 - Email threading/conversations
 - Attachments support
 - Search functionality
 - Folders and labels
 - Spam filtering
 - Email encryption
-- Web-based UI
-- Real-time notifications
+- Real-time notifications (WebSocket)
 - Multiple recipients (CC, BCC)
 - Email drafts
 - Delete and archive functionality
+- Password-based authentication
+- More advanced database (PostgreSQL, MongoDB)
+
+## Technology Stack
+
+- **Backend**: Python 3.6+
+- **Web Framework**: Flask 3.0.0
+- **Database**: SQLite3 (built-in)
+- **Frontend**: HTML5, CSS3 (no JavaScript frameworks)
+- **Testing**: unittest (Python standard library)
 
 ## License
 
