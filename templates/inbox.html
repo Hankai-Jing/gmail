@@ -11,15 +11,17 @@
 {% if emails %}
     <ul class="email-list">
         {% for email in emails %}
-        <li class="email-item {% if not email.read %}unread{% endif %}" onclick="window.location='{{ url_for('view_email', email_id=email.email_id) }}'">
-            <div class="email-header">
-                <div>
-                    <div class="email-subject">{{ email.subject }}</div>
-                    <div class="email-meta">From: {{ email.sender }}</div>
+        <a href="{{ url_for('view_email', email_id=email.email_id) }}" style="text-decoration: none; color: inherit;">
+            <li class="email-item {% if not email.read %}unread{% endif %}">
+                <div class="email-header">
+                    <div>
+                        <div class="email-subject">{{ email.subject }}</div>
+                        <div class="email-meta">From: {{ email.sender }}</div>
+                    </div>
+                    <div class="email-date">{{ email.timestamp.strftime('%Y-%m-%d %H:%M') }}</div>
                 </div>
-                <div class="email-date">{{ email.timestamp.strftime('%Y-%m-%d %H:%M') }}</div>
-            </div>
-        </li>
+            </li>
+        </a>
         {% endfor %}
     </ul>
 {% else %}
