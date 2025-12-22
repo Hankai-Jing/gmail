@@ -1,7 +1,9 @@
 """
 Flask web application for the Gmail-like system.
+Includes both traditional web UI and REST API for mobile platforms.
 """
 from flask import Flask, render_template, request, redirect, url_for, flash, session
+from flask_cors import CORS
 from email_service import EmailService
 from database_storage import DatabaseStorage
 import os
@@ -13,6 +15,16 @@ app.secret_key = os.environ.get('SECRET_KEY', 'dev-secret-key-change-in-producti
 # Initialize with database storage
 storage = DatabaseStorage('gmail.db')
 email_service = EmailService(storage)
+
+# Store email_service in app config for API access
+app.config['email_service'] = email_service
+
+# Register API blueprint
+from api import api
+app.register_blueprint(api)
+
+# Enable CORS for API endpoints only
+CORS(app, resources={r"/api/*": {"origins": "*"}})
 
 
 @app.route('/')

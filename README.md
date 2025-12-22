@@ -1,6 +1,6 @@
 # Gmail-like Email System
 
-A fully-functional Gmail-like system that allows users to send and receive emails. Built with Python, featuring both a command-line interface and a modern web UI with persistent database storage.
+A fully-functional Gmail-like system that allows users to send and receive emails. Built with Python, featuring a command-line interface, modern web UI, and **REST API for iOS/Android/Web platforms** with persistent database storage.
 
 ## Features
 
@@ -12,7 +12,9 @@ A fully-functional Gmail-like system that allows users to send and receive email
 - **Email Tracking**: Automatic timestamping and unique ID generation
 - **Database Persistence**: SQLite database for persistent storage
 - **Web UI**: Modern, responsive web interface built with Flask
+- **REST API**: Full REST API with JWT authentication for mobile/web clients
 - **CLI Interface**: Traditional command-line interface for power users
+- **Multi-Platform**: Supports iOS, Android, and web through REST API
 
 ## Architecture
 
@@ -22,11 +24,13 @@ The system is built with a clean, modular architecture:
 - **storage.py**: In-memory storage layer for emails and users
 - **database_storage.py**: SQLite-based persistent storage layer
 - **email_service.py**: Business logic for email operations
-- **app.py**: Flask web application with HTML templates
+- **app.py**: Flask web application with HTML templates and API
+- **api.py**: REST API endpoints with JWT authentication
 - **main.py**: Command-line interface for user interaction
 - **demo.py**: Automated demo script
 - **test_gmail.py**: Comprehensive unit tests for in-memory storage
 - **test_database.py**: Unit tests for database storage
+- **test_api.py**: Unit tests for REST API endpoints
 
 ## Installation
 
@@ -43,9 +47,9 @@ cd gmail
 python main.py
 ```
 
-### Option 2: Web UI (With Flask)
+### Option 2: Web UI + REST API (With Flask)
 
-For the full web interface experience:
+For the full web interface and REST API:
 
 ```bash
 # Clone the repository
@@ -55,11 +59,13 @@ cd gmail
 # Install dependencies
 pip install -r requirements.txt
 
-# Run the web application
+# Run the web application (includes REST API)
 python app.py
 ```
 
 Then open your browser and navigate to `http://localhost:5000`
+
+**REST API is available at:** `http://localhost:5000/api/v1/`
 
 **Changing the Port:**
 
@@ -74,6 +80,43 @@ FLASK_PORT=8080 python run_web.py
 ```
 
 ## Usage
+
+### REST API (for iOS/Android/Web)
+
+The system includes a full REST API with JWT authentication. See [API_DOCUMENTATION.md](API_DOCUMENTATION.md) for complete details.
+
+**Quick Example:**
+
+```bash
+# Register a user
+curl -X POST http://localhost:5000/api/v1/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{"email": "alice@example.com", "name": "Alice"}'
+
+# Send an email (use the access_token from registration)
+curl -X POST http://localhost:5000/api/v1/emails \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
+  -d '{"recipient": "bob@example.com", "subject": "Hello", "body": "Hi!"}'
+
+# Get inbox
+curl -X GET http://localhost:5000/api/v1/emails/inbox \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
+```
+
+**API Features:**
+- JWT authentication with access/refresh tokens
+- CORS enabled for cross-origin requests
+- RESTful endpoints for all operations
+- JSON request/response format
+- Ready for iOS, Android, and web clients
+
+See [API_DOCUMENTATION.md](API_DOCUMENTATION.md) for:
+- Complete endpoint reference
+- Authentication flow
+- iOS/Swift code examples
+- Python client examples
+- Error handling
 
 ### Web Interface
 
@@ -315,9 +358,13 @@ Possible improvements for a more complete system:
 
 - **Backend**: Python 3.6+
 - **Web Framework**: Flask 3.0.0
+- **REST API**: Flask Blueprint with JWT authentication
+- **Authentication**: PyJWT 2.8.0 (JSON Web Tokens)
+- **CORS**: Flask-CORS 4.0.0 (cross-origin support)
 - **Database**: SQLite3 (built-in)
 - **Frontend**: HTML5, CSS3 (no JavaScript frameworks)
-- **Testing**: unittest (Python standard library)
+- **Testing**: unittest (Python standard library) - 41 tests
+- **Platform Support**: Web, iOS, Android (via REST API)
 
 ## License
 
