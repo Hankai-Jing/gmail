@@ -317,7 +317,37 @@ def get_current_user(current_user_email):
     }), 200
 
 
-# Health check endpoint
+# Root and health check endpoints
+
+@api.route('/', methods=['GET'])
+def api_root():
+    """API root endpoint - provides API information."""
+    return jsonify({
+        'message': 'Gmail-like System REST API',
+        'version': '1.0.0',
+        'api': 'v1',
+        'endpoints': {
+            'authentication': {
+                'register': 'POST /api/v1/auth/register',
+                'login': 'POST /api/v1/auth/login',
+                'refresh': 'POST /api/v1/auth/refresh'
+            },
+            'emails': {
+                'send': 'POST /api/v1/emails',
+                'inbox': 'GET /api/v1/emails/inbox',
+                'sent': 'GET /api/v1/emails/sent',
+                'get': 'GET /api/v1/emails/<email_id>',
+                'mark_read': 'PUT /api/v1/emails/<email_id>/read'
+            },
+            'users': {
+                'list': 'GET /api/v1/users',
+                'me': 'GET /api/v1/users/me'
+            },
+            'health': 'GET /api/v1/health'
+        },
+        'documentation': 'See API_DOCUMENTATION.md for complete API reference'
+    }), 200
+
 
 @api.route('/health', methods=['GET'])
 def health_check():

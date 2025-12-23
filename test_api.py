@@ -36,6 +36,18 @@ class TestAPI(unittest.TestCase):
         if os.path.exists(self.test_db):
             os.remove(self.test_db)
     
+    def test_api_root(self):
+        """Test API root endpoint."""
+        response = self.client.get('/api/v1/')
+        self.assertEqual(response.status_code, 200)
+        
+        data = json.loads(response.data)
+        self.assertIn('message', data)
+        self.assertIn('version', data)
+        self.assertIn('endpoints', data)
+        self.assertEqual(data['version'], '1.0.0')
+        self.assertEqual(data['api'], 'v1')
+    
     def test_health_check(self):
         """Test API health check endpoint."""
         response = self.client.get('/api/v1/health')
