@@ -7,6 +7,7 @@ from functools import wraps
 import jwt
 import datetime
 import os
+from observability import LOGGER, METRICS, log_event, get_request_id, hash_email
 
 # Create API blueprint
 api = Blueprint('api', __name__, url_prefix='/api/v1')
@@ -58,9 +59,25 @@ def token_required(f):
             try:
                 token = auth_header.split(' ')[1]  # Bearer <token>
             except IndexError:
+                METRICS.inc_counter("auth_token_total", labels={"status": "error", "reason": "invalid_header"})
+                log_event(
+                    LOGGER,
+                    "auth.token",
+                    request_id=get_request_id(),
+                    status="error",
+                    reason="invalid_header",
+                )
                 return jsonify({'error': 'Invalid authorization header format'}), 401
         
         if not token:
+            METRICS.inc_counter("auth_token_total", labels={"status": "error", "reason": "missing"})
+            log_event(
+                LOGGER,
+                "auth.token",
+                request_id=get_request_id(),
+                status="error",
+                reason="missing",
+            )
             return jsonify({'error': 'Token is missing'}), 401
         
         try:
@@ -69,6 +86,14 @@ def token_required(f):
             
             # Check token type
             if payload.get('type') != 'access':
+                METRICS.inc_counter("auth_token_total", labels={"status": "error", "reason": "invalid_type"})
+                log_event(
+                    LOGGER,
+                    "auth.token",
+                    request_id=get_request_id(),
+                    status="error",
+                    reason="invalid_type",
+                )
                 return jsonify({'error': 'Invalid token type'}), 401
             
             # Get user email from token
@@ -76,11 +101,36 @@ def token_required(f):
             
             # Verify user exists
             if not get_email_service().storage.user_exists(current_user_email):
+                METRICS.inc_counter("auth_token_total", labels={"status": "error", "reason": "user_missing"})
+                log_event(
+                    LOGGER,
+                    "auth.token",
+                    request_id=get_request_id(),
+                    status="error",
+                    reason="user_missing",
+                    user_hash=hash_email(current_user_email),
+                )
                 return jsonify({'error': 'User not found'}), 401
             
         except jwt.ExpiredSignatureError:
+            METRICS.inc_counter("auth_token_total", labels={"status": "error", "reason": "expired"})
+            log_event(
+                LOGGER,
+                "auth.token",
+                request_id=get_request_id(),
+                status="error",
+                reason="expired",
+            )
             return jsonify({'error': 'Token has expired'}), 401
         except jwt.InvalidTokenError:
+            METRICS.inc_counter("auth_token_total", labels={"status": "error", "reason": "invalid"})
+            log_event(
+                LOGGER,
+                "auth.token",
+                request_id=get_request_id(),
+                status="error",
+                reason="invalid",
+            )
             return jsonify({'error': 'Invalid token'}), 401
         
         # Pass user email to the endpoint
@@ -97,12 +147,14 @@ def register():
     data = request.get_json()
     
     if not data:
+        METRICS.inc_counter("auth_register_total", labels={"status": "error", "reason": "no_data"})
         return jsonify({'error': 'No data provided'}), 400
     
     email_address = data.get('email')
     name = data.get('name')
     
     if not email_address or not name:
+        METRICS.inc_counter("auth_register_total", labels={"status": "error", "reason": "missing_fields"})
         return jsonify({'error': 'Email and name are required'}), 400
     
     try:
@@ -112,6 +164,14 @@ def register():
         access_token = create_access_token(user.email_address)
         refresh_token = create_refresh_token(user.email_address)
         
+        METRICS.inc_counter("auth_register_total", labels={"status": "success"})
+        log_event(
+            LOGGER,
+            "auth.register",
+            request_id=get_request_id(),
+            status="success",
+            user_hash=hash_email(user.email_address),
+        )
         return jsonify({
             'message': 'User registered successfully',
             'user': user.to_dict(),
@@ -120,6 +180,15 @@ def register():
         }), 201
         
     except ValueError as e:
+        METRICS.inc_counter("auth_register_total", labels={"status": "error", "reason": "invalid"})
+        log_event(
+            LOGGER,
+            "auth.register",
+            request_id=get_request_id(),
+            status="error",
+            reason="invalid",
+            user_hash=hash_email(email_address),
+        )
         return jsonify({'error': str(e)}), 400
 
 
@@ -129,23 +198,42 @@ def login():
     data = request.get_json()
     
     if not data:
+        METRICS.inc_counter("auth_login_total", labels={"status": "error", "reason": "no_data"})
         return jsonify({'error': 'No data provided'}), 400
     
     email_address = data.get('email')
     
     if not email_address:
+        METRICS.inc_counter("auth_login_total", labels={"status": "error", "reason": "missing_email"})
         return jsonify({'error': 'Email is required'}), 400
     
     # Check if user exists
     user = get_email_service().get_user(email_address)
     
     if not user:
+        METRICS.inc_counter("auth_login_total", labels={"status": "error", "reason": "not_found"})
+        log_event(
+            LOGGER,
+            "auth.login",
+            request_id=get_request_id(),
+            status="error",
+            reason="not_found",
+            user_hash=hash_email(email_address),
+        )
         return jsonify({'error': 'User not found'}), 404
     
     # Create tokens
     access_token = create_access_token(user.email_address)
     refresh_token = create_refresh_token(user.email_address)
     
+    METRICS.inc_counter("auth_login_total", labels={"status": "success"})
+    log_event(
+        LOGGER,
+        "auth.login",
+        request_id=get_request_id(),
+        status="success",
+        user_hash=hash_email(user.email_address),
+    )
     return jsonify({
         'message': 'Login successful',
         'user': user.to_dict(),
@@ -160,11 +248,13 @@ def refresh():
     data = request.get_json()
     
     if not data:
+        METRICS.inc_counter("auth_refresh_total", labels={"status": "error", "reason": "no_data"})
         return jsonify({'error': 'No data provided'}), 400
     
     refresh_token = data.get('refresh_token')
     
     if not refresh_token:
+        METRICS.inc_counter("auth_refresh_total", labels={"status": "error", "reason": "missing_token"})
         return jsonify({'error': 'Refresh token is required'}), 400
     
     try:
@@ -180,13 +270,22 @@ def refresh():
         # Create new access token
         new_access_token = create_access_token(email_address)
         
+        METRICS.inc_counter("auth_refresh_total", labels={"status": "success"})
+        log_event(
+            LOGGER,
+            "auth.refresh",
+            request_id=get_request_id(),
+            status="success",
+        )
         return jsonify({
             'access_token': new_access_token
         }), 200
         
     except jwt.ExpiredSignatureError:
+        METRICS.inc_counter("auth_refresh_total", labels={"status": "error", "reason": "expired"})
         return jsonify({'error': 'Refresh token has expired'}), 401
     except jwt.InvalidTokenError:
+        METRICS.inc_counter("auth_refresh_total", labels={"status": "error", "reason": "invalid"})
         return jsonify({'error': 'Invalid refresh token'}), 401
 
 
@@ -199,6 +298,7 @@ def send_email(current_user_email):
     data = request.get_json()
     
     if not data:
+        METRICS.inc_counter("emails_send_requests_total", labels={"status": "error", "reason": "no_data"})
         return jsonify({'error': 'No data provided'}), 400
     
     recipient = data.get('recipient')
@@ -206,17 +306,20 @@ def send_email(current_user_email):
     body = data.get('body')
     
     if not recipient or not subject or not body:
+        METRICS.inc_counter("emails_send_requests_total", labels={"status": "error", "reason": "missing_fields"})
         return jsonify({'error': 'Recipient, subject, and body are required'}), 400
     
     try:
         email = get_email_service().send_email(current_user_email, recipient, subject, body)
         
+        METRICS.inc_counter("emails_send_requests_total", labels={"status": "success"})
         return jsonify({
             'message': 'Email sent successfully',
             'email': email.to_dict()
         }), 201
         
     except ValueError as e:
+        METRICS.inc_counter("emails_send_requests_total", labels={"status": "error", "reason": "invalid"})
         return jsonify({'error': str(e)}), 400
 
 
@@ -352,8 +455,13 @@ def api_root():
 @api.route('/health', methods=['GET'])
 def health_check():
     """API health check."""
+    storage = get_email_service().storage
+    db_ok = True
+    if hasattr(storage, "health_check"):
+        db_ok = storage.health_check()
     return jsonify({
         'status': 'healthy',
         'version': '1.0.0',
-        'api': 'v1'
+        'api': 'v1',
+        'db': 'ok' if db_ok else 'error'
     }), 200

@@ -2,11 +2,13 @@
 Flask web application for the Gmail-like system.
 Includes both traditional web UI and REST API for mobile platforms.
 """
-from flask import Flask, render_template, request, redirect, url_for, flash, session
+from flask import Flask, render_template, request, redirect, url_for, flash, session, g, Response
 from flask_cors import CORS
 from email_service import EmailService
 from database_storage import DatabaseStorage
+from observability import LOGGER, METRICS, log_event, request_fields, set_request_id, get_request_id
 import os
+import time
 
 
 app = Flask(__name__)
@@ -25,6 +27,57 @@ app.register_blueprint(api)
 
 # Enable CORS for API endpoints only
 CORS(app, resources={r"/api/*": {"origins": "*"}})
+
+
+@app.before_request
+def start_request():
+    g.request_start = time.monotonic()
+    request_id = set_request_id()
+    log_event(LOGGER, "request.start", request_id=request_id, **request_fields())
+
+
+@app.after_request
+def end_request(response):
+    duration = None
+    if hasattr(g, "request_start"):
+        duration = time.monotonic() - g.request_start
+        METRICS.observe_duration(
+            "http_request_duration_seconds",
+            duration,
+            labels={"path": request.path, "method": request.method, "status": str(response.status_code)},
+        )
+    METRICS.inc_counter(
+        "http_requests_total",
+        labels={"path": request.path, "method": request.method, "status": str(response.status_code)},
+    )
+    log_event(
+        LOGGER,
+        "request.end",
+        request_id=get_request_id(),
+        status=response.status_code,
+        duration_seconds=duration,
+        **request_fields(),
+    )
+    return response
+
+
+@app.teardown_request
+def teardown_request(error=None):
+    if error:
+        log_event(
+            LOGGER,
+            "request.error",
+            request_id=get_request_id(),
+            error_type=type(error).__name__,
+            error_message=str(error),
+            **request_fields(),
+        )
+
+
+@app.route('/metrics')
+def metrics():
+    """Prometheus-style metrics endpoint."""
+    return Response(METRICS.render_prometheus(), mimetype='text/plain')
 
 
 @app.route('/')
