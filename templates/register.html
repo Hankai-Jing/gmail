@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+
+{% block title %}Register - Gmail-like System{% endblock %}
+
+{% block content %}
+<div class="card" style="max-width: 500px; margin: 40px auto;">
+    <h2 style="margin-bottom: 20px;">Register New Account</h2>
+    <form method="POST">
+        <div class="form-group">
+            <label for="email_address">Email Address</label>
+            <input type="email" id="email_address" name="email_address" required>
+        </div>
+        <div class="form-group">
+            <label for="name">Full Name</label>
+            <input type="text" id="name" name="name" required>
+        </div>
+        <button type="submit" class="btn">Register</button>
+        <a href="{{ url_for('login') }}" style="margin-left: 10px;">Already have an account? Login</a>
+    </form>
+</div>
+{% endblock %}

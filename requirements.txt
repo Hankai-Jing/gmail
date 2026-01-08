@@ -1,0 +1,11 @@
+# Core dependencies
+Flask==3.0.0
+Werkzeug==3.0.1
+
+# JWT authentication for API
+PyJWT==2.8.0
+
+# CORS support for cross-origin requests
+Flask-CORS==4.0.0
+
+# No additional database driver needed - using SQLite (built into Python)

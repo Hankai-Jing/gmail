@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+
+{% block title %}Users - Gmail-like System{% endblock %}
+
+{% block content %}
+<h2 style="margin-bottom: 20px;">Registered Users</h2>
+
+{% if users %}
+    <ul class="user-list">
+        {% for user in users %}
+        <li class="user-item">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <div style="font-weight: 600; margin-bottom: 5px;">{{ user.name }}</div>
+                    <div style="color: #5f6368; font-size: 14px;">{{ user.email_address }}</div>
+                </div>
+                {% if user.email_address != current_user %}
+                    <a href="{{ url_for('compose') }}" class="btn">Send Email</a>
+                {% endif %}
+            </div>
+        </li>
+        {% endfor %}
+    </ul>
+{% else %}
+    <div class="card" style="text-align: center; padding: 40px;">
+        <p style="color: #5f6368;">No registered users</p>
+    </div>
+{% endif %}
+{% endblock %}
